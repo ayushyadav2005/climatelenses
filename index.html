@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ClimateLens | Global Climate Intelligence, Earth Explorer & Awareness Survey</title>
+    <meta name="description" content="Explore live global climate data, atmospheric air quality, interactive satellite maps, weather forecasts, personal carbon footprint analysis, and 10-question climate awareness survey.">
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <a href="/" class="brand">
+            <span class="brand-icon">🌱</span>
+            <span>Climate<span class="brand-highlight">Lens</span></span>
+        </a>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">
+            ☰
+        </button>
+
+        <nav class="nav-links" id="navLinks">
+            <a href="#home">Home</a>
+            <a href="#dashboard">Live Climate</a>
+            <a href="#mapSection">Interactive Map</a>
+            <a href="#aqiSection">Air Quality</a>
+            <a href="#calculator">Carbon Calculator</a>
+            <a href="#surveySection" class="nav-highlight">📝 Climate Survey</a>
+            <a href="#surveySection" id="navAnalyticsLink" class="nav-highlight">📊 Analytics</a>
+            <a href="#learn">Education</a>
+            <a href="#action">Take Action</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- HERO SECTION -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <span class="eyebrow">GLOBAL CLIMATE INTELLIGENCE & AWARENESS PLATFORM</span>
+
+                <h1>
+                    See the Climate.<br>
+                    <span>Understand Our Planet.</span>
+                </h1>
+
+                <p>
+                    Search any city on Earth for real-time weather and Air Quality Index (AQI),
+                    calculate your personal carbon footprint, and participate in our interactive 10-question Climate Awareness Survey.
+                </p>
+
+                <!-- SEARCH FORM -->
+                <form class="search-form" id="locationSearch">
+                    <label class="sr-only" for="locationInput">
+                        Search any city, state or country
+                    </label>
+
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input
+                            type="search"
+                            id="locationInput"
+                            placeholder="Type any city (e.g., Delhi, London, Tokyo, New York)..."
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+
+                    <div class="search-actions">
+                        <button type="submit" id="searchButton" class="btn-search">
+                            Search Climate <span aria-hidden="true">→</span>
+                        </button>
+                        <button type="button" id="geoBtn" class="btn-geo" title="Detect your current location using GPS">
+                            📍 My Location
+                        </button>
+                    </div>
+                </form>
+
+                <!-- QUICK CITY PILLS -->
+                <div class="search-examples">
+                    <span class="quick-label">Popular Locations:</span>
+                    <button type="button" class="example-location" data-location="Delhi, India">🇮🇳 Delhi</button>
+                    <button type="button" class="example-location" data-location="Mumbai, Maharashtra, India">🇮🇳 Mumbai</button>
+                    <button type="button" class="example-location" data-location="Pune, Maharashtra, India">🇮🇳 Pune</button>
+                    <button type="button" class="example-location" data-location="Bengaluru, Karnataka, India">🇮🇳 Bengaluru</button>
+                    <button type="button" class="example-location" data-location="London, United Kingdom">🇬🇧 London</button>
+                    <button type="button" class="example-location" data-location="Tokyo, Japan">🇯🇵 Tokyo</button>
+                    <button type="button" class="example-location" data-location="New York, United States">🇺🇸 New York</button>
+                    <button type="button" class="example-location" data-location="Paris, France">🇫🇷 Paris</button>
+                    <button type="button" class="example-location" data-location="Sydney, Australia">🇦🇺 Sydney</button>
+                </div>
+
+                <!-- SURVEY HERO SHORTCUT BUTTONS -->
+                <div class="hero-survey-shortcuts">
+                    <a href="#surveySection" id="heroTakeSurveyBtn" class="btn-hero-survey">📝 Take 10-Question Climate Survey</a>
+                    <a href="#surveySection" id="heroViewAnalyticsBtn" class="btn-hero-analytics">📊 View Google Forms-Style Analytics</a>
+                </div>
+
+                <!-- LIVE SEARCH STATUS & RESULTS DROPDOWN -->
+                <div id="searchMessage" class="search-message" role="status" aria-live="polite"></div>
+                <div id="searchResults" class="search-results"></div>
+            </div>
+        </section>
+
+        <!-- LIVE CLIMATE DASHBOARD CONTAINER -->
+        <section class="climate-dashboard" id="dashboard">
+            <div class="dashboard-placeholder" id="dashboardPlaceholder">
+                <div class="placeholder-icon">🌍</div>
+                <h3>Explore Global Climate in Real Time</h3>
+                <p>Search any city above or click <strong>📍 My Location</strong> to load instant weather metrics, Air Quality Index (AQI), interactive map, and climate trends.</p>
+                <div class="placeholder-chips">
+                    <button type="button" class="btn-sample-load" data-location="Delhi, India">View Delhi Climate</button>
+                    <button type="button" class="btn-sample-load" data-location="London, United Kingdom">View London Climate</button>
+                    <button type="button" class="btn-sample-load" data-location="Tokyo, Japan">View Tokyo Climate</button>
+                </div>
+            </div>
+            <div id="dashboardActiveContent" class="dashboard-active-content" style="display: none;"></div>
+        </section>
+
+        <!-- CARBON FOOTPRINT CALCULATOR -->
+        <section class="section calculator-section" id="calculator">
+            <div class="section-heading">
+                <span class="eyebrow">INTERACTIVE ECO TOOL</span>
+                <h2>Personal Carbon Footprint Calculator</h2>
+                <p>Estimate your annual carbon emission based on your lifestyle and discover how to reduce your planetary impact.</p>
+            </div>
+
+            <div class="calculator-container">
+                <div class="calculator-inputs">
+                    <div class="calc-group">
+                        <label for="commuteKm">
+                            <span>Daily Travel / Commute:</span>
+                            <strong id="commuteVal">15 km/day</strong>
+                        </label>
+                        <input type="range" id="commuteKm" min="0" max="100" value="15" step="1">
+                    </div>
+
+                    <div class="calc-group">
+                        <label for="transportMode">Primary Transport Mode:</label>
+                        <select id="transportMode">
+                            <option value="petrol">Petrol / Diesel Car (High CO₂)</option>
+                            <option value="bike">Motorcycle / Scooter (Moderate CO₂)</option>
+                            <option value="transit" selected>Public Transit / Metro (Low CO₂)</option>
+                            <option value="ev">Electric Vehicle (Minimal CO₂)</option>
+                            <option value="walk">Bicycle / Walking (Zero CO₂)</option>
+                        </select>
+                    </div>
+
+                    <div class="calc-group">
+                        <label for="electricityTier">Home Electricity Consumption:</label>
+                        <select id="electricityTier">
+                            <option value="low">Eco-conscious / Solar (Under 100 kWh/mo)</option>
+                            <option value="medium" selected>Standard Household (150 - 300 kWh/mo)</option>
+                            <option value="high">Heavy AC / High Consumption (400+ kWh/mo)</option>
+                        </select>
+                    </div>
+
+                    <div class="calc-group">
+                        <label for="dietType">Dietary Lifestyle:</label>
+                        <select id="dietType">
+                            <option value="vegan">Plant-Based / Vegan (Lowest CO₂)</option>
+                            <option value="vegetarian" selected>Vegetarian (Low CO₂)</option>
+                            <option value="moderate_meat">Average Mixed Diet (Moderate CO₂)</option>
+                            <option value="heavy_meat">Meat-Heavy Diet (High CO₂)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calculator-results">
+                    <div class="carbon-score-card">
+                        <span class="carbon-label">Estimated Annual Emissions</span>
+                        <div class="carbon-number"><span id="carbonTotal">1,820</span> <small>kg CO₂ / year</small></div>
+                        <div class="carbon-gauge-bar">
+                            <div class="carbon-gauge-fill" id="carbonBar" style="width: 45%;"></div>
+                        </div>
+                        <div class="target-comparison">
+                            <span>Paris 2030 Climate Goal: <strong>2,000 kg</strong></span>
+                            <span id="targetStatus" class="status-badge status-good">Within Safe Range</span>
+                        </div>
+                    </div>
+
+                    <div class="reduction-recommendations" id="reductionTips">
+                        <h4>💡 Smart Ways to Reduce Your Footprint:</h4>
+                        <ul id="tipsList">
+                            <li>Taking public transit or cycling reduces up to 1,200 kg CO₂ annually.</li>
+                            <li>Switching to energy-efficient LED appliances cuts household power emissions by ~25%.</li>
+                            <li>Embracing plant-forward meals significantly reduces greenhouse gases from livestock farming.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10-QUESTION CLIMATE SURVEY & GOOGLE FORMS-STYLE ANALYTICS DASHBOARD -->
+        <section class="section survey-platform-section" id="surveySection">
+            <div class="section-heading">
+                <span class="eyebrow">RESEARCH & PUBLIC AWARENESS INITIATIVE</span>
+                <h2>Climate Awareness Survey & Live Analytics</h2>
+                <p>Participate in our 10-question climate awareness study and explore live Google Forms-style analytical charts of public sentiment stored in our database.</p>
+            </div>
+
+            <!-- TAB TOGGLE -->
+            <div class="survey-tabs-nav">
+                <button type="button" class="survey-tab-btn active" id="tabBtnSurvey">
+                    📝 Take 10-Question Survey
+                </button>
+                <button type="button" class="survey-tab-btn" id="tabBtnAnalytics">
+                    📊 Live Analytics Dashboard <span class="badge-live-pulse">LIVE</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: SURVEY FORM -->
+            <div class="survey-tab-pane active" id="surveyFormTab">
+                <!-- Clean Welcome Card (Shown by Default) -->
+                <div class="survey-welcome-card" id="surveyWelcomeCard">
+                    <div class="survey-welcome-badge">🌱 STUDENT & CITIZEN STUDY • 10 QUESTIONS (2 MINS)</div>
+                    <h3>Voice Your Perspective on Climate Action</h3>
+                    <p>
+                        Share your thoughts on renewable energy, carbon taxation, extreme weather patterns,
+                        and climate education. Your responses are directly recorded in our SQLite research database
+                        and visualized live in our Google Forms-style analytics dashboard!
+                    </p>
+                    <div class="survey-welcome-actions">
+                        <button type="button" class="btn-start-survey" id="btnStartSurvey">
+                            📝 Click Here to Start 10-Question Survey →
+                        </button>
+                        <button type="button" class="btn-goto-analytics" id="btnGotoAnalytics">
+                            📊 View Live Community Analytics
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Questionnaire Form (Hidden by Default until clicked!) -->
+                <form id="climateSurveyForm" class="survey-form-container" style="display: none;">
+                    <div class="survey-form-topbar">
+                        <span class="survey-form-status">📋 Questionnaire Active: Please answer all 10 questions below</span>
+                        <button type="button" class="btn-close-survey" id="btnCloseSurvey" title="Close survey">✕ Close Questions</button>
+                    </div>
+
+                    <div class="survey-profile-card">
+                        <div class="profile-input-group">
+                            <label for="surveyName">Your Full Name: <span class="required">*</span></label>
+                            <input type="text" id="surveyName" placeholder="e.g., Aarav Sharma" required>
+                        </div>
+                        <div class="profile-input-group">
+                            <label for="surveyRole">Your Profile / Role:</label>
+                            <select id="surveyRole">
+                                <option value="Student" selected>🎓 Student</option>
+                                <option value="Educator / Teacher">👨‍🏫 Educator / Teacher</option>
+                                <option value="Environmentalist">🌿 Environmentalist / Researcher</option>
+                                <option value="General Citizen">🌍 General Citizen</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 10 Questions Rendered Dynamically by script.js -->
+                    <div id="surveyQuestionsList" class="questions-list"></div>
+
+                    <div class="survey-submit-bar">
+                        <div id="surveyFeedback" class="survey-feedback" role="status" aria-live="polite"></div>
+                        <button type="submit" id="surveySubmitBtn" class="btn-submit-survey">
+                            Submit Survey Responses 🚀
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TAB 2: GOOGLE FORMS-STYLE ANALYTICS DASHBOARD -->
+            <div class="survey-tab-pane" id="surveyAnalyticsTab" style="display: none;">
+                <!-- Live KPI Banner -->
+                <div class="analytics-kpi-grid">
+                    <div class="kpi-card">
+                        <span class="kpi-icon">👥</span>
+                        <div class="kpi-data">
+                            <h3 id="kpiTotalResponses">--</h3>
+                            <p>Total Survey Responses</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-icon">⚡</span>
+                        <div class="kpi-data">
+                            <h3 id="kpiUrgencyScore">--%</h3>
+                            <p>Urgent Clean Energy Priority</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-icon">🎓</span>
+                        <div class="kpi-data">
+                            <h3 id="kpiCurriculumSupport">--%</h3>
+                            <p>Support Mandatory Climate Edu</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-icon">🌱</span>
+                        <div class="kpi-data">
+                            <h3 id="kpiDailyHabits">--%</h3>
+                            <p>Daily Action Contributors</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="analytics-toolbar">
+                    <div class="toolbar-title">
+                        <h4>Live Survey Analytics & Responses</h4>
+                        <span class="toolbar-sub">Aggregated from SQLite Database (`climate.db`) & visualized with Chart.js</span>
+                    </div>
+                    <div class="toolbar-buttons">
+                        <button type="button" id="refreshAnalyticsBtn" class="btn-tool">🔄 Refresh Live Data</button>
+                        <button type="button" id="printAnalyticsBtn" class="btn-tool">🖨️ Print Analytics Report</button>
+                    </div>
+                </div>
+
+                <!-- 10 Question Charts Grid (Populated dynamically) -->
+                <div id="analyticsChartsGrid" class="analytics-charts-grid"></div>
+
+                <!-- Recent Participants Table -->
+                <div class="recent-participants-card">
+                    <h4>Recent Survey Contributors (SQLite Record Log)</h4>
+                    <div class="table-responsive">
+                        <table class="participants-table">
+                            <thead>
+                                <tr>
+                                    <th>Participant Name</th>
+                                    <th>Role / Status</th>
+                                    <th>Submission Date & Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="participantsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LEARN / EDUCATIONAL SECTION -->
+        <section class="section learn-section" id="learn">
+            <div class="section-heading">
+                <span class="eyebrow">CLIMATE SCIENCE 101</span>
+                <h2>Understand Our Planet's Atmosphere</h2>
+                <p>Fundamental climate principles explained for students and educators.</p>
+            </div>
+
+            <div class="learn-grid">
+                <article class="learn-card">
+                    <span class="learn-number">01</span>
+                    <h3>Weather vs. Climate</h3>
+                    <p>Weather is what happens in the atmosphere day-to-day. Climate is the regional or global pattern of weather averaged over 30 or more years.</p>
+                </article>
+
+                <article class="learn-card">
+                    <span class="learn-number">02</span>
+                    <h3>The Greenhouse Effect</h3>
+                    <p>Gases like Carbon Dioxide (CO₂), Methane (CH₄), and Ozone trap thermal radiation within Earth's troposphere, maintaining life yet amplifying warming when excessive.</p>
+                </article>
+
+                <article class="learn-card">
+                    <span class="learn-number">03</span>
+                    <h3>Air Quality Index (AQI)</h3>
+                    <p>AQI measures particulate matter (PM2.5, PM10) and toxic gases. Ground-level ozone and fine particles penetrate lungs and exacerbate climate-related cardiovascular stress.</p>
+                </article>
+
+                <article class="learn-card">
+                    <span class="learn-number">04</span>
+                    <h3>Renewable Energy Transition</h3>
+                    <p>Transitioning electricity generation to solar, wind, and green hydrogen eliminates millions of gigagrams of fossil emissions, halting runaway global warming.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- TAKE ACTION -->
+        <section class="action-section" id="action">
+            <span class="eyebrow">STUDENT & COMMUNITY ACTION</span>
+            <h2>A Greener Tomorrow Starts In Our Classrooms</h2>
+            <p>
+                Knowledge turns into power when we act. Track your local climate, share data-driven insights with peers, and champion eco-initiatives in your community.
+            </p>
+            <div class="action-buttons">
+                <a href="#home" class="primary-link">Search Another Location ↑</a>
+                <a href="#surveySection" class="light-link">Participate In Survey →</a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer" id="about">
+        <div class="footer-main">
+            <div class="footer-brand">
+                <a href="#home" class="brand">
+                    <span class="brand-icon">🌱</span>
+                    <span>Climate<span class="brand-highlight">Lens</span></span>
+                </a>
+                <p>
+                    Built as an Academic Climate Intelligence & Environmental Awareness Project.<br>
+                    Empowering students, teachers, and researchers with open meteorological science.
+                </p>
+            </div>
+
+            <div class="footer-column">
+                <h3>Navigation</h3>
+                <a href="#home">Home Explorer</a>
+                <a href="#dashboard">Live Climate</a>
+                <a href="#calculator">Carbon Calculator</a>
+                <a href="#surveySection">Awareness Survey</a>
+                <a href="#learn">Climate Basics</a>
+            </div>
+
+            <div class="footer-column">
+                <h3>Open APIs & Tools</h3>
+                <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo Weather API</a>
+                <a href="https://open-meteo.com/en/docs/air-quality-api" target="_blank" rel="noopener">Open-Meteo Air Quality</a>
+                <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">OpenStreetMap & Nominatim</a>
+                <a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet.js Maps</a>
+                <a href="https://www.chartjs.org/" target="_blank" rel="noopener">Chart.js Analytics</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2026 ClimateLens Academic Project. Built with Flask, SQLite, Leaflet & Chart.js.</p>
+            <p>Real-time open data for climate education and environmental preservation.</p>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Application JS -->
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>
